@@ -18,11 +18,13 @@ import {
   Background,
   useReactFlow,
   ReactFlowProvider,
+  type NodeProps,
 } from '@xyflow/react';
 import SendMessagesNode from './SendMessageNode';
 import { CustomEdge } from './CustomEdge';
 import NodesPanel from './NodePanel';
 import DnDContext, { DnDProvider } from '../utils/DnDContext';
+import SettingsPanel from './SettingsPanel';
 
 const initialNodes: Node[] = [
   { id: '1', data: { label: 'Node 1' }, position: { x: 5, y: 5 }, type: 'textUpdater', },
@@ -59,6 +61,7 @@ function Dashboard() {
 
   const [nodes, setNodes] = useState<Node[]>(initialNodes);
   const [edges, setEdges] = useState<Edge[]>(initialEdges);
+  const [selectedNode, setSelectedNode] = useState<Node | null>(null);
 
   const { screenToFlowPosition } = useReactFlow();
   const [type, setType] = useContext(DnDContext);
@@ -75,14 +78,12 @@ function Dashboard() {
     (connection) => setEdges((eds) => addEdge(connection, eds)),
     [setEdges],
   );
-
-   const onDragOver = useCallback((event: DragEvent<HTMLDivElement>) => {
+  const onDragOver = useCallback((event: DragEvent<HTMLDivElement>) => {
     event.preventDefault();
     event.dataTransfer.dropEffect = 'move';
   }, []);
 
-  const onDrop = useCallback(
-    (event: DragEvent<HTMLDivElement>) => {
+  const onDrop = useCallback((event: DragEvent<HTMLDivElement>) => {
       event.preventDefault();
  
       // check if the dropped element is valid
@@ -90,9 +91,6 @@ function Dashboard() {
         return;
       }
  
-      // project was renamed to screenToFlowPosition
-      // and you don't need to subtract the reactFlowBounds.left/top anymore
-      // details: https://reactflow.dev/whats-new/2023-11-10
       const position = screenToFlowPosition({
         x: event.clientX,
         y: event.clientY,
@@ -109,12 +107,19 @@ function Dashboard() {
     [screenToFlowPosition, type],
   );
 
-  const onDragStart = (event: DragEvent<HTMLDivElement>) => {
-    console.log(event)
-    // setType(nodeType);
-    // event.dataTransfer.setData('text/plain', nodeType);
-    // event.dataTransfer.effectAllowed = 'move';
-  }; 
+  const editNodeData = (id: string, data: NodeProps['data']) => {
+    setNodes(prev => {
+      return prev.map(n => {
+        if (n.id === id) {
+          return {...n, data};
+        }
+
+        return n;
+      });
+    });
+
+    setSelectedNode(null);
+  }
  
   return (
     <section className='flex w-full h-full'>
@@ -130,10 +135,12 @@ function Dashboard() {
           edgeTypes={edgeTypes}
           onDrop={onDrop}
           onDragOver={onDragOver}
-          onDragStart={onDragStart}
           fitView
           fitViewOptions={fitViewOptions}
           defaultEdgeOptions={defaultEdgeOptions}
+          onNodeClick={(e, node) => {
+            setSelectedNode(node);
+          }}
         >
           <Controls />
           <Background />
@@ -141,7 +148,10 @@ function Dashboard() {
       </div>
 
       <aside>
-        <NodesPanel />
+        {selectedNode
+          ? <SettingsPanel selectedNode={selectedNode} setNodeData={editNodeData} />
+          : <NodesPanel />
+        }
       </aside>
     </section>
   );
