@@ -1,6 +1,6 @@
 import '@xyflow/react/dist/style.css';
 
-import { useCallback, useContext, useRef, useState, type DragEvent } from 'react';
+import { useCallback, useContext, useRef, useState, type DragEvent, type JSX, type ReactNode } from 'react';
 import {
   ReactFlow,
   addEdge,
@@ -26,10 +26,7 @@ import NodesPanel from './NodePanel';
 import DnDContext, { DnDProvider } from '../utils/DnDContext';
 import SettingsPanel from './SettingsPanel';
 
-const initialNodes: Node[] = [
-  { id: '1', data: { label: 'Node 1' }, position: { x: 5, y: 5 }, type: 'textUpdater', },
-  { id: '2', data: { label: 'Node 2' }, position: { x: 5, y: 100 }, type: 'textUpdater', },
-];
+const initialNodes: Node[] = [];
  
 const initialEdges: Edge[] = [];
 
@@ -123,7 +120,7 @@ function Dashboard() {
  
   return (
     <section className='flex w-full h-full'>
-      <div style={{ width: '70%', height: '90%' }} ref={reactFlowWrapper}>
+      <div style={{ width: '80%', height: '90%' }} ref={reactFlowWrapper} className='basis-[80%]'>
         <ReactFlow
           nodes={nodes}
           edges={edges}
@@ -141,15 +138,24 @@ function Dashboard() {
           onNodeClick={(e, node) => {
             setSelectedNode(node);
           }}
+          onNodesDelete={(node) => {
+            if (node[0].id === selectedNode?.id) {
+              setSelectedNode(null);
+            }
+          }}
         >
           <Controls />
           <Background />
         </ReactFlow>
       </div>
 
-      <aside>
+      <aside className='basis-[20%] border-l-2 border-gray-300'>
         {selectedNode
-          ? <SettingsPanel selectedNode={selectedNode} setNodeData={editNodeData} />
+          ? <SettingsPanel 
+              selectedNode={selectedNode} 
+              setNodeData={editNodeData}
+              onBackClick={() => {setSelectedNode(null);}}
+            />
           : <NodesPanel />
         }
       </aside>
