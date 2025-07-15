@@ -26,6 +26,7 @@ import { CustomEdge } from './CustomEdge';
 import NodesPanel from './NodePanel';
 import DnDContext, { DnDProvider } from '../utils/DnDContext';
 import SettingsPanel from './SettingsPanel';
+import { checkEmptyTargetHandles } from '../utils/utils';
 
 const initialNodes: Node[] = [];
  
@@ -40,7 +41,7 @@ const defaultEdgeOptions: DefaultEdgeOptions = {
 };
 
 const onNodeDrag: OnNodeDrag = (_, node) => {
-  console.log('drag event', node.data);
+  // console.log('drag event', node.data);
 };
 
 const nodeTypes = {
@@ -108,6 +109,10 @@ function Dashboard() {
 
   const saveFlow = useCallback(() => {
     if (rfInstance) {
+      const emptyHandlesPresnet = checkEmptyTargetHandles(rfInstance);
+
+      if (emptyHandlesPresnet) alert("Can not save");
+      
       const flow = rfInstance.toObject();
       localStorage.setItem('flowInstance', JSON.stringify(flow));
     }
@@ -182,3 +187,4 @@ export default function DashboardWithProvider() {
     </ReactFlowProvider>
   );
 }
+
