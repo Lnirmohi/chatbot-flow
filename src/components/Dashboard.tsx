@@ -20,16 +20,19 @@ import {
   ReactFlowProvider,
   type NodeProps,
   type ReactFlowInstance,
+  type ReactFlowJsonObject,
+  Panel,
 } from '@xyflow/react';
 import SendMessagesNode from './SendMessageNode';
 import { CustomEdge } from './CustomEdge';
 import NodesPanel from './NodePanel';
 import DnDContext, { DnDProvider } from '../utils/DnDContext';
 import SettingsPanel from './SettingsPanel';
-import { checkEmptyTargetHandles } from '../utils/utils';
+import { checkEmptyTargetHandles, useSaveInstances } from '../utils/utils';
+import { toast } from 'react-toastify';
+import Header from './Header';
 
 const initialNodes: Node[] = [];
- 
 const initialEdges: Edge[] = [];
 
 const fitViewOptions: FitViewOptions = {
@@ -62,6 +65,8 @@ function Dashboard() {
   const [edges, setEdges] = useState<Edge[]>(initialEdges);
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
   const [rfInstance, setRfInstance] = useState<ReactFlowInstance | null>(null);
+  const [selectedFlowName, setSelectedFlowName] = useState('untitled flow');
+  const [savedInstance, setSavedInstance] = useSaveInstances();
 
   const { screenToFlowPosition } = useReactFlow();
   const [type, setType] = useContext(DnDContext);
@@ -111,27 +116,31 @@ function Dashboard() {
     if (rfInstance) {
       const emptyHandlesPresnet = checkEmptyTargetHandles(rfInstance);
 
-      if (emptyHandlesPresnet) alert("Can not save");
+      if (emptyHandlesPresnet) {
+        toast.error("Cannot save flow");
+      }
       
+      const flowName = prompt("Enter flow name:");
       const flow = rfInstance.toObject();
-      localStorage.setItem('flowInstance', JSON.stringify(flow));
+      setSavedInstance(prev => {
+        return {
+          ...prev,
+          [flowName ?? '']: flow
+
+        };
+      });
     }
   }, [rfInstance]);
+
  
   return (
     <div className="flex flex-col w-full h-full">
-      <button
-        className={`
-          self-end m-4 px-4 py-2 ring-1 ring-gray-400 text-blue-500
-          hover:ring-1 hover:ring-blue-500 hover:cursor-pointer 
-          rounded-sm
-        `}
-        onClick={() => {
-          saveFlow();
-        }}
-      >
-        Save changes
-      </button>
+      <Header 
+        saveFlow={saveFlow} 
+        savedInstanceNames={Object.keys(savedInstance)} 
+        flowName={selectedFlowName}
+        setFlowName={setSelectedFlowName}
+      />
       <section className='flex w-full h-full border-1 border-t-gray-400'>
         <div style={{ width: '80%', height: '90%' }} ref={reactFlowWrapper} className='basis-[80%]'>
           <ReactFlow
@@ -160,6 +169,15 @@ function Dashboard() {
           >
             <Controls />
             <Background />
+            <Panel position="top-left">
+              <div>
+                <button 
+                  className="rounded-sm bg-blue-400 text-white font-medium p-3 shadow-lg hover:cursor-pointer active:scale-95"
+                >
+                  + New flow
+                </button>
+              </div>
+            </Panel>
           </ReactFlow>
         </div>
 
