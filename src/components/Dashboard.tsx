@@ -122,15 +122,28 @@ function Dashboard() {
       
       const flowName = prompt("Enter flow name:");
       const flow = rfInstance.toObject();
+      setSelectedFlowName(flowName?.length ? flowName : 'untitled flow');
       setSavedInstance(prev => {
         return {
           ...prev,
           [flowName ?? '']: flow
-
         };
       });
     }
   }, [rfInstance]);
+
+  const resetFlow = () => {
+    if (rfInstance) {
+      rfInstance.setNodes(initialNodes);
+      rfInstance.setEdges(initialEdges);
+      rfInstance.setViewport({ x: 0, y: 0, zoom: 1 });
+
+      setNodes([]);
+      setEdges([]);
+      setSelectedNode(null);
+      setSelectedFlowName('untitled flow');
+    }
+  }
 
  
   return (
@@ -173,6 +186,11 @@ function Dashboard() {
               <div>
                 <button 
                   className="rounded-sm bg-blue-400 text-white font-medium p-3 shadow-lg hover:cursor-pointer active:scale-95"
+                  onClick={() => {
+                    saveFlow();
+                    toast.info("Existing flow saved!");
+                    resetFlow();
+                  }}
                 >
                   + New flow
                 </button>
