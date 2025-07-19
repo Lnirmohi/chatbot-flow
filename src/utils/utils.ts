@@ -1,6 +1,7 @@
 import type { ReactFlowInstance, ReactFlowJsonObject, Node, Edge } from "@xyflow/react";
 import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
 
+// check if there are more than one Nodes and more than one Node has empty target handles 
 export function checkEmptyTargetHandles(rfInstance: ReactFlowInstance) {
   const nodesPresenet = rfInstance.getNodes();
   let emptyTargetHandlesCount = 0;
@@ -21,13 +22,13 @@ export function checkEmptyTargetHandles(rfInstance: ReactFlowInstance) {
       }
     }
   }
-  
 
   return false;
 }
 
 export type SavedRFInstance = Record<string, ReactFlowJsonObject<Node, Edge>>;
 
+// hook for managing react flow saved instances, parsing and storing using localStorage
 export function useSaveInstances(): [
   SavedRFInstance, 
   Dispatch<SetStateAction<SavedRFInstance>>
@@ -59,6 +60,7 @@ export function useSaveInstances(): [
   return [savedInstances, setSavedInstances];
 }
 
+// type guard to check if the obj is type of SavedRFInstance
 function isSavedInstance(instance: unknown): instance is SavedRFInstance {
 
   if (instance === null || typeof instance !== 'object') return false;

@@ -55,6 +55,8 @@ const edgeTypes = {
 };
 
 let id = 0;
+
+// generate id for nodes generated
 const getId = () => `dndnode_${id++}`;
 
 function Dashboard() {
@@ -69,7 +71,7 @@ function Dashboard() {
 
   const { screenToFlowPosition, setViewport } = useReactFlow();
   const [type, setType] = useContext(DnDContext);
-  const allSavedInstances = Object.keys(savedInstance);
+  const allSavedInstances = Object.keys(savedInstance); // name of all saved instances
  
   const onNodesChange: OnNodesChange = useCallback(
     (changes) => setNodes((nds) => applyNodeChanges(changes, nds)),
@@ -100,6 +102,8 @@ function Dashboard() {
         x: event.clientX,
         y: event.clientY,
       });
+
+      // create noe node on drop and save it to existing node list
       const newNode = {
         id: getId(),
         type,
@@ -113,12 +117,16 @@ function Dashboard() {
   );
 
   const saveFlow = useCallback((newFlowName: string) => {
-    console.log(rfInstance);
+    
+    console.log(rfInstance); // keeping it for debugging
+
     if (rfInstance) {
+      // check if there is one or more node is there and n more than have empty target handle
       const emptyHandlesPresent = checkEmptyTargetHandles(rfInstance);
 
       if (emptyHandlesPresent) {
         toast.error("Cannot save flow");
+        return;
       }
       
       const flow = rfInstance.toObject();
@@ -133,6 +141,7 @@ function Dashboard() {
 
         toast.success("Flow saved");
       } else {
+        // in case of new flow instance created name will be empty
         if (newFlowName.length === 0)  {
           handleFlowCreate(true, flow);
         }
