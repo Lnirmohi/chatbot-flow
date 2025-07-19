@@ -1,6 +1,6 @@
 import '@xyflow/react/dist/style.css';
 
-import { useCallback, useContext, useRef, useState, type DragEvent, type JSX, type ReactNode } from 'react';
+import { useCallback, useContext, useId, useRef, useState, type DragEvent, type JSX, type ReactNode } from 'react';
 import {
   ReactFlow,
   addEdge,
@@ -68,7 +68,7 @@ function Dashboard() {
   const [selectedFlowName, setSelectedFlowName] = useState('');
   const [savedInstance, setSavedInstance] = useSaveInstances();
 
-  const { screenToFlowPosition } = useReactFlow();
+  const { screenToFlowPosition, setViewport } = useReactFlow();
   const [type, setType] = useContext(DnDContext);
   const allSavedInstances = Object.keys(savedInstance);
  
@@ -114,6 +114,7 @@ function Dashboard() {
   );
 
   const saveFlow = useCallback((newFlowName: string) => {
+    console.log(rfInstance);
     if (rfInstance) {
       const emptyHandlesPresent = checkEmptyTargetHandles(rfInstance);
 
@@ -134,7 +135,7 @@ function Dashboard() {
         toast.success("Flow saved");
       } else {
         if (newFlowName.length === 0)  {
-          handleNewFlowCreate();
+          handleFlowCreate(true, flow);
         }
       }
     }
@@ -142,31 +143,57 @@ function Dashboard() {
 
   const resetFlow = () => {
     if (rfInstance) {
-      rfInstance.setNodes(initialNodes);
-      rfInstance.setEdges(initialEdges);
+      rfInstance.setNodes([]);
+      rfInstance.setEdges([]);
       rfInstance.setViewport({ x: 0, y: 0, zoom: 1 });
 
       setNodes([]);
       setEdges([]);
       setSelectedNode(null);
-      setSelectedFlowName('untitled flow');
     }
   }
 
-  const handleNewFlowCreate = () => {
+  const handleFlowCreate = (update=false, flow?: ReactFlowJsonObject<Node, Edge>) => {
     const newFlowName = prompt("Enter name for the flow");
                     
     if (newFlowName) {
+
+      if (flow) {
+        setSavedInstance(prev => {
+          return {
+            ...prev,
+            [newFlowName]: flow
+          };
+        });
+      }
+
       const flowAlreadyExist = allSavedInstances.includes(newFlowName);
       if (flowAlreadyExist) {
         toast.error(`Flow with same name alaready exist: ${newFlowName}`);
       } else {
-        setSelectedFlowName(newFlowName?.length ? newFlowName : 'untitled flow');
-        saveFlow(newFlowName);
-        resetFlow();
+        setSelectedFlowName(newFlowName);
+        if (!update) {
+          resetFlow();
+        }
       }
     }
   }
+
+  const handleFlowSelect = useCallback((name: string) => {
+    setSelectedFlowName(name);
+    
+    if (name in savedInstance && rfInstance) {
+      const foundInst = savedInstance[name];
+      // rfInstance.setNodes([...foundInst.nodes]);
+      // rfInstance.setEdges([...foundInst.edges]);
+      // rfInstance.setViewport({x: 0, y: 0, zoom: 1});
+
+      setNodes(foundInst.nodes);
+      setEdges(foundInst.edges);
+      setViewport({x: 0, y: 0, zoom: 1});
+      setSelectedNode(null);
+    }
+  }, [rfInstance, savedInstance]);
  
   return (
     <div className="flex flex-col w-full h-full">
@@ -174,6 +201,7 @@ function Dashboard() {
         saveFlow={saveFlow} 
         savedInstanceNames={allSavedInstances} 
         flowName={selectedFlowName}
+        onFlowSelect={handleFlowSelect}
       />
       <section className='flex w-full h-full border-1 border-t-gray-400'>
         <div style={{ width: '80%', height: '90%' }} ref={reactFlowWrapper} className='basis-[80%]'>
@@ -207,7 +235,7 @@ function Dashboard() {
               <div>
                 <button 
                   className="rounded-sm bg-blue-400 text-white font-medium p-3 shadow-lg hover:cursor-pointer active:scale-95"
-                  onClick={handleNewFlowCreate}
+                  onClick={() => handleFlowCreate()}
                 >
                   + New flow
                 </button>

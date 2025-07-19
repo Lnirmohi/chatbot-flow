@@ -9,7 +9,7 @@ function App() {
       <section className='h-screen w-screen'>
         <Dashboard />
       </section>
-      <ToastContainer />
+      <ToastContainer position='bottom-right' />
     </>
   )
 }

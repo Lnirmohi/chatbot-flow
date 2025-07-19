@@ -16,6 +16,8 @@ export default function SettingsPanel({
     if (!selectedNode) {
       onBackClick();
     }
+
+    setVal(selectedNode?.data?.value as string ?? '');
   }, [onBackClick, selectedNode]);
   
   return (

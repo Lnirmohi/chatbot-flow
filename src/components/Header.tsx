@@ -1,19 +1,26 @@
 export default function Header({
   saveFlow, 
   savedInstanceNames,
-  flowName
+  flowName,
+  onFlowSelect
 }: {
   saveFlow: (val: string) => void;
   savedInstanceNames: string[];
   flowName: string;
+  onFlowSelect: (name: string) => void
 }) {
 
   return (
     <header className="flex justify-between items-start">
-      <select className={`
-        border border-gray-400 h-auto self-center mr-4 px-4 py-2
-        hover:ring-1 hover:ring-blue-500 hover:cursor-pointer rounded-sm
-      `}>
+      <select 
+        className={`
+          border border-gray-400 h-auto self-center ml-4 px-4 py-2
+          hover:ring-1 hover:ring-blue-500 hover:cursor-pointer rounded-sm
+        `}
+        onChange={(e) => {
+          onFlowSelect(e.target.value);
+        }}
+      >
         <option>
           {savedInstanceNames.length
             ? 'Select a flow to show'
