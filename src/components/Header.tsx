@@ -1,34 +1,12 @@
-import { useEffect, useRef, useState, type Dispatch } from "react";
-
 export default function Header({
   saveFlow, 
   savedInstanceNames,
-  flowName,
-  setFlowName
+  flowName
 }: {
-  saveFlow: () => void;
+  saveFlow: (val: string) => void;
   savedInstanceNames: string[];
   flowName: string;
-  setFlowName: Dispatch<React.SetStateAction<string>>;
 }) {
-  const [isEditing, setIsEditing] = useState(false);
-
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-
-    function handleClickOutside(e: MouseEvent) {
-      if (inputRef.current && !inputRef.current.contains(e.target as Node)) {
-        setIsEditing(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [inputRef]);
 
   return (
     <header className="flex justify-between items-start">
@@ -48,17 +26,14 @@ export default function Header({
       </select>
 
       <div className="self-center">
-        <input 
-          value={flowName} 
-          onChange={({target}) => {
-            setFlowName(target.value);
-          }}
+        <p 
           className={`
-            w-auto bg-slate-100/40 py-1 rounded-sm text-center text-lg font-medium outline-none focus:bg-slate-200/50
+            w-auto bg-slate-100/40 min-w-48 px-2 py-1 rounded-sm text-center text-lg font-medium
           `}
-          ref={inputRef}
-          onClick={() => {setIsEditing(true);}}
-        />
+        >
+          {flowName.length ? flowName : 'untitled flow'}
+        </p>
+        
       </div>
 
       <button
@@ -68,7 +43,7 @@ export default function Header({
           rounded-sm
         `}
         onClick={() => {
-          saveFlow();
+          saveFlow(flowName);
         }}
       >
         Save changes

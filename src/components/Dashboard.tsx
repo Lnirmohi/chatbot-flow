@@ -65,11 +65,12 @@ function Dashboard() {
   const [edges, setEdges] = useState<Edge[]>(initialEdges);
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
   const [rfInstance, setRfInstance] = useState<ReactFlowInstance | null>(null);
-  const [selectedFlowName, setSelectedFlowName] = useState('untitled flow');
+  const [selectedFlowName, setSelectedFlowName] = useState('');
   const [savedInstance, setSavedInstance] = useSaveInstances();
 
   const { screenToFlowPosition } = useReactFlow();
   const [type, setType] = useContext(DnDContext);
+  const allSavedInstances = Object.keys(savedInstance);
  
   const onNodesChange: OnNodesChange = useCallback(
     (changes) => setNodes((nds) => applyNodeChanges(changes, nds)),
@@ -112,25 +113,32 @@ function Dashboard() {
     [screenToFlowPosition, type],
   );
 
-  const saveFlow = useCallback(() => {
+  const saveFlow = useCallback((newFlowName: string) => {
     if (rfInstance) {
-      const emptyHandlesPresnet = checkEmptyTargetHandles(rfInstance);
+      const emptyHandlesPresent = checkEmptyTargetHandles(rfInstance);
 
-      if (emptyHandlesPresnet) {
+      if (emptyHandlesPresent) {
         toast.error("Cannot save flow");
       }
       
-      const flowName = prompt("Enter flow name:");
       const flow = rfInstance.toObject();
-      setSelectedFlowName(flowName?.length ? flowName : 'untitled flow');
-      setSavedInstance(prev => {
-        return {
-          ...prev,
-          [flowName ?? '']: flow
-        };
-      });
+
+      if (newFlowName.length) {
+        setSavedInstance(prev => {
+          return {
+            ...prev,
+            [newFlowName]: flow
+          };
+        });
+
+        toast.success("Flow saved");
+      } else {
+        if (newFlowName.length === 0)  {
+          handleNewFlowCreate();
+        }
+      }
     }
-  }, [rfInstance]);
+  }, [rfInstance, selectedFlowName, setSavedInstance]);
 
   const resetFlow = () => {
     if (rfInstance) {
@@ -145,14 +153,27 @@ function Dashboard() {
     }
   }
 
+  const handleNewFlowCreate = () => {
+    const newFlowName = prompt("Enter name for the flow");
+                    
+    if (newFlowName) {
+      const flowAlreadyExist = allSavedInstances.includes(newFlowName);
+      if (flowAlreadyExist) {
+        toast.error(`Flow with same name alaready exist: ${newFlowName}`);
+      } else {
+        setSelectedFlowName(newFlowName?.length ? newFlowName : 'untitled flow');
+        saveFlow(newFlowName);
+        resetFlow();
+      }
+    }
+  }
  
   return (
     <div className="flex flex-col w-full h-full">
       <Header 
         saveFlow={saveFlow} 
-        savedInstanceNames={Object.keys(savedInstance)} 
+        savedInstanceNames={allSavedInstances} 
         flowName={selectedFlowName}
-        setFlowName={setSelectedFlowName}
       />
       <section className='flex w-full h-full border-1 border-t-gray-400'>
         <div style={{ width: '80%', height: '90%' }} ref={reactFlowWrapper} className='basis-[80%]'>
@@ -186,11 +207,7 @@ function Dashboard() {
               <div>
                 <button 
                   className="rounded-sm bg-blue-400 text-white font-medium p-3 shadow-lg hover:cursor-pointer active:scale-95"
-                  onClick={() => {
-                    saveFlow();
-                    toast.info("Existing flow saved!");
-                    resetFlow();
-                  }}
+                  onClick={handleNewFlowCreate}
                 >
                   + New flow
                 </button>
