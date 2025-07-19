@@ -1,6 +1,6 @@
 import '@xyflow/react/dist/style.css';
 
-import { useCallback, useContext, useId, useRef, useState, type DragEvent, type JSX, type ReactNode } from 'react';
+import { useCallback, useContext, useRef, useState, type DragEvent } from 'react';
 import {
   ReactFlow,
   addEdge,
@@ -18,7 +18,6 @@ import {
   Background,
   useReactFlow,
   ReactFlowProvider,
-  type NodeProps,
   type ReactFlowInstance,
   type ReactFlowJsonObject,
   Panel,
